@@ -1,6 +1,6 @@
 Flip Game: Multi-Agent Reinforcement Learning Benchmark
 This project implements a multi-agent reinforcement learning (RL) framework using the Flip Game environment. It supports training agents in CPU-only, GPU-only, and hybrid modes, and includes evaluation using the Kolmogorov–Smirnov (KS) test.​
-=====================================================================================================================================
+=======================================================================================
 Project Structure
 
 flip_game/
@@ -14,7 +14,7 @@ flip_game/
 ├── run_all_experiments.sh # Bash script to run all experiments
 └── README.md              # Project documentation
 
-=====================================================================================================================================
+==========================================================================================
 1. Set up:
 
 git clone https://github.com/yourusername/flip_game.git
@@ -87,5 +87,5 @@ PyTorch
 
 TensorBoard​
 
-========================================================================================================================
+==========================================================================================
 For any questions or issues, please open an issue on the GitHub repository.
