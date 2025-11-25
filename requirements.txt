@@ -1,0 +1,829 @@
+Last login: Mon Nov 24 16:07:27 on ttys006
+kangli@default-10-231-131-203 Downloads % ssh f007pkj@lisplab-1                                       
+f007pkj@lisplab-1's password: 
+Welcome to Ubuntu 24.04.3 LTS (GNU/Linux 6.8.0-85-generic x86_64)
+
+Welcome to lisplab-1.
+
+You are currently in your ThayerFS home directory. All ThayerFS shares are
+available under the /thayerfs directory.
+
+Information about the linux clients is available on the Thayer Computing site:
+  http://computing.thayer.dartmouth.edu/
+
+If you have any questions or need assistance, please e-mail
+  computing@thayer.dartmouth.edu
+
+
+  << You are currently using 5.04G of your 10.00G home directory quota. >>
+
+f007pkj@lisplab-1:~$ cd /
+f007pkj@lisplab-1:/$ ls
+bin		   dartfs      home   lib64		   lost+found  optnfs  sbin		   scratch3  sys       var
+bin.usr-is-merged  dartfs-hpc  jumbo  lib64.usr-is-merged  media       proc    sbin.usr-is-merged  snap      thayerfs
+boot		   dev	       lib    lib.usr-is-merged    mnt	       root    scratch		   srv	     tmp
+cdrom		   etc	       lib32  libx32		   opt	       run     scratch2		   swap.img  usr
+f007pkj@lisplab-1:/$ cd scratch
+f007pkj@lisplab-1:/scratch$ ls
+bliu	  f00561n  f007f4f  f007fsp  f007j6p  f007sfp  hendrata			      jie  lmnt        maip   scratch
+datasets  f006pq6  f007fj9  f007hc4  f007pkj  haystac  IMPORTANT_ALL_USERS_READ_THIS  koh  lost+found  paulc  testfile
+f007pkj@lisplab-1:/scratch$ cd jie
+f007pkj@lisplab-1:/scratch/jie$ ls
+cage-challenge-2  CAgent   flip_game	      LLM-copilot-RL-main     mrgc	      Python-3.10.13.tgz  venv-emgc
+cage-challenge-4  CASTLE   gpt_recovery_demo  LLM_MARL		      MRGC	      ray		  YOLO_MARL
+cage_env	  cc2_env  graph	      market-based-scheduler  Python-3.10.13  tmp_ray		  zipnn
+f007pkj@lisplab-1:/scratch/jie$ cd flip_game/
+f007pkj@lisplab-1:/scratch/jie/flip_game$ ls
+archive			     game_env			   output.log			run_all_experiments.sh
+demo_policy_benchmark.py     generate_comparison_table.py  policy_throughput_esann.pdf	run_tensorboard.sh
+draw_demo_policy_results.py  jie			   policy_throughput_real.png	train.py
+envs			     jie.pub			   README.md
+evaluate_ks.py		     logs			   requirements.txt
+f007pkj@lisplab-1:/scratch/jie/flip_game$ cat draw_demo_policy_results.py 
+import numpy as np
+import matplotlib.pyplot as plt
+
+# -----------------------------------
+# Data
+# -----------------------------------
+policies = ["Deterministic", "Stochastic", "Rule-based", "Transformer"]
+
+cpu_throughput = np.array([5703.7, 3644.2, 46686.4, 314.4])
+gpu_throughput = np.array([30292.5, 17352.6, 63782.0, 2460.4])
+
+x = np.arange(len(policies))
+width = 0.35  # bar width
+
+# -----------------------------------
+# Paper-friendly style (ESANN / LaTeX)
+# -----------------------------------
+plt.rcParams.update(
+    {
+        "font.family": "serif",
+        "font.size": 8,
+        "axes.titlesize": 8,
+        "axes.labelsize": 8,
+        "xtick.labelsize": 7,
+        "ytick.labelsize": 7,
+        "legend.fontsize": 7,
+        "axes.linewidth": 0.7,
+        # 如果你在 LaTeX 里用 pdf_tex 可以考虑：
+        # "text.usetex": True,
+    }
+)
+
+# ~8.5 cm × 5 cm single-column figure
+fig, ax = plt.subplots(figsize=(3.35, 1.95))
+
+# -----------------------------------
+# Bars (grayscale + hatch, good for print)
+# -----------------------------------
+bars_cpu = ax.bar(
+    x - width / 2,
+    cpu_throughput,
+    width,
+    label="CPU",
+    color="0.85",         # light gray
+    edgecolor="0.0",
+    hatch="//",
+    linewidth=0.7,
+)
+
+bars_gpu = ax.bar(
+    x + width / 2,
+    gpu_throughput,
+    width,
+    label="GPU",
+    color="0.55",         # darker gray
+    edgecolor="0.0",
+    hatch="\\\\",
+    linewidth=0.7,
+)
+
+# -----------------------------------
+# Optional: value labels on top of bars
+# (如果觉得挤，可以注释掉整个函数调用)
+# -----------------------------------
+def add_value_labels(bars, offset_ratio=0.01):
+    for bar in bars:
+        height = bar.get_height()
+        ax.text(
+            bar.get_x() + bar.get_width() / 2.0,
+            height * (1 + offset_ratio),
+            f"{height:.1f}",
+            ha="center",
+            va="bottom",
+        )
+
+# 如果想更干净，就注释这两行
+add_value_labels(bars_cpu)
+add_value_labels(bars_gpu)
+
+# -----------------------------------
+# Axes, legend, grid
+# -----------------------------------
+# ESANN 中标题通常放到 caption 里，这里不设标题
+# ax.set_title("Policy Throughput on CPU vs GPU")
+
+ax.set_ylabel("Throughput (iterations/s)")
+ax.set_xticks(x)
+ax.set_xticklabels(policies, rotation=15, ha="right")
+
+ax.legend(frameon=False, ncol=2, loc="upper left")
+
+ax.grid(axis="y", linestyle="--", linewidth=0.4, alpha=0.6)
+ax.set_axisbelow(True)
+
+# remove top/right spines (cleaner)
+ax.spines["top"].set_visible(False)
+ax.spines["right"].set_visible(False)
+
+fig.tight_layout(pad=0.5)
+
+# 保存为矢量图，方便 LaTeX 缩放
+fig.savefig("policy_throughput_esann.pdf", bbox_inches="tight")
+# 可选：也存一份 PNG
+# fig.savefig("policy_throughput_esann.png", dpi=300, bbox_inches="tight")
+
+# 调试时用
+# plt.show()
+
+f007pkj@lisplab-1:/scratch/jie/flip_game$ ls
+archive			     game_env			   output.log			run_all_experiments.sh
+demo_policy_benchmark.py     generate_comparison_table.py  policy_throughput_esann.pdf	run_tensorboard.sh
+draw_demo_policy_results.py  jie			   policy_throughput_real.png	train.py
+envs			     jie.pub			   README.md
+evaluate_ks.py		     logs			   requirements.txt
+f007pkj@lisplab-1:/scratch/jie/flip_game$ rm draw_demo_policy_results.py 
+f007pkj@lisplab-1:/scratch/jie/flip_game$ ls
+archive			  game_env			logs			     README.md		     train.py
+demo_policy_benchmark.py  generate_comparison_table.py	output.log		     requirements.txt
+envs			  jie				policy_throughput_esann.pdf  run_all_experiments.sh
+evaluate_ks.py		  jie.pub			policy_throughput_real.png   run_tensorboard.sh
+f007pkj@lisplab-1:/scratch/jie/flip_game$ cd jie
+-bash: cd: jie: Not a directory
+f007pkj@lisplab-1:/scratch/jie/flip_game$ ls
+archive			  game_env			logs			     README.md		     train.py
+demo_policy_benchmark.py  generate_comparison_table.py	output.log		     requirements.txt
+envs			  jie				policy_throughput_esann.pdf  run_all_experiments.sh
+evaluate_ks.py		  jie.pub			policy_throughput_real.png   run_tensorboard.sh
+f007pkj@lisplab-1:/scratch/jie/flip_game$ rm jie
+f007pkj@lisplab-1:/scratch/jie/flip_game$ ls
+archive			  evaluate_ks.py		jie.pub     policy_throughput_esann.pdf  requirements.txt	 train.py
+demo_policy_benchmark.py  game_env			logs	    policy_throughput_real.png	 run_all_experiments.sh
+envs			  generate_comparison_table.py	output.log  README.md			 run_tensorboard.sh
+f007pkj@lisplab-1:/scratch/jie/flip_game$ cat demo_policy_benchmark.py 
+import torch
+import torch.nn as nn
+import time
+import matplotlib.pyplot as plt
+import numpy as np
+
+# ============ Policy Definitions ============
+
+class DeterministicPolicy(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64)
+        )
+    def forward(self, x):
+        return self.model(x)
+
+class StochasticPolicy(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Dropout(p=0.3),
+            nn.Linear(128, 64)
+        )
+    def forward(self, x):
+        return self.model(x) + torch.randn_like(x) * 0.1
+
+class RuleBasedPolicy(nn.Module):
+    def forward(self, x):
+        return x * (x > 0.5).float()
+
+class TransformerPolicy(nn.Module):
+    def __init__(self):
+        super().__init__()
+        encoder_layer = nn.TransformerEncoderLayer(d_model=64, nhead=4)
+        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=2)
+    def forward(self, x):
+        return self.encoder(x)
+
+# ============ Benchmark Utilities ============
+
+def warmup(model, x, times=10):
+    with torch.no_grad():
+        for _ in range(times):
+            _ = model(x)
+
+def benchmark(policy_class, device, batch_size=128, iterations=100):
+    model = policy_class().to(device)
+    model.eval()
+    x = torch.rand((batch_size, 64)).to(device)
+
+    if isinstance(model, TransformerPolicy):
+        x = x.unsqueeze(1).permute(1, 0, 2)  # [seq_len, batch, dim]
+
+    warmup(model, x)
+
+    if device.type == 'cuda':
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
+
+    start_time = time.time()
+    with torch.no_grad():
+        for _ in range(iterations):
+            _ = model(x)
+    if device.type == 'cuda':
+        torch.cuda.synchronize()
+    end_time = time.time()
+
+    throughput = iterations / (end_time - start_time)
+    peak_mem = torch.cuda.max_memory_allocated(device) / (1024 * 1024) if device.type == 'cuda' else 0.0
+    return throughput, peak_mem
+
+# ============ Run Experiment ============
+
+policies = {
+    "Deterministic": DeterministicPolicy,
+    "Stochastic": StochasticPolicy,
+    "Rule-based": RuleBasedPolicy,
+    "Transformer": TransformerPolicy
+}
+
+devices = {
+    "CPU": torch.device("cpu"),
+    "GPU": torch.device("cuda" if torch.cuda.is_available() else "cpu")
+}
+
+throughput_results = {d: [] for d in devices}
+memory_results = {d: [] for d in devices}
+
+for device_name, device in devices.items():
+    print(f"\n--- Testing on {device_name} ---")
+    for policy_name, policy_cls in policies.items():
+        print(f"Running {policy_name}...")
+        tput, mem = benchmark(policy_cls, device)
+        throughput_results[device_name].append(tput)
+        memory_results[device_name].append(mem)
+
+# ============ Plot ============
+
+x = np.arange(len(policies))
+width = 0.35
+fig, ax = plt.subplots(figsize=(10, 6))
+bars1 = ax.bar(x - width/2, throughput_results["CPU"], width, label="CPU", hatch='//', color='skyblue')
+bars2 = ax.bar(x + width/2, throughput_results["GPU"], width, label="GPU", hatch='\\\\', color='salmon')
+
+ax.set_ylabel("Throughput (iterations/sec)")
+ax.set_title("Policy Throughput on CPU vs GPU")
+ax.set_xticks(x)
+ax.set_xticklabels(list(policies.keys()))
+ax.legend()
+ax.grid(True, linestyle='--', alpha=0.6)
+
+for bars in [bars1, bars2]:
+    for bar in bars:
+        height = bar.get_height()
+        ax.annotate(f'{height:.1f}',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3),
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+plt.tight_layout()
+plt.savefig("policy_throughput_real.png", dpi=300)
+plt.show()
+
+# ======================
+
+import pandas as pd
+
+summary = pd.DataFrame({
+    "Policy": list(policies.keys()) * 2,
+    "Device": ["CPU"] * 4 + ["GPU"] * 4,
+    "Throughput (iter/s)": throughput_results["CPU"] + throughput_results["GPU"],
+    "Peak Memory (MB)": memory_results["CPU"] + memory_results["GPU"]
+})
+
+print("\n--- Benchmark Summary ---")
+print(summary.to_string(index=False))
+
+f007pkj@lisplab-1:/scratch/jie/flip_game$ cat demo_policy_benchmark.py 
+import torch
+import torch.nn as nn
+import time
+import matplotlib.pyplot as plt
+import numpy as np
+
+# ============ Policy Definitions ============
+
+class DeterministicPolicy(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64)
+        )
+    def forward(self, x):
+        return self.model(x)
+
+class StochasticPolicy(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Dropout(p=0.3),
+            nn.Linear(128, 64)
+        )
+    def forward(self, x):
+        return self.model(x) + torch.randn_like(x) * 0.1
+
+class RuleBasedPolicy(nn.Module):
+    def forward(self, x):
+        return x * (x > 0.5).float()
+
+class TransformerPolicy(nn.Module):
+    def __init__(self):
+        super().__init__()
+        encoder_layer = nn.TransformerEncoderLayer(d_model=64, nhead=4)
+        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=2)
+    def forward(self, x):
+        return self.encoder(x)
+
+# ============ Benchmark Utilities ============
+
+def warmup(model, x, times=10):
+    with torch.no_grad():
+        for _ in range(times):
+            _ = model(x)
+
+def benchmark(policy_class, device, batch_size=128, iterations=100):
+    model = policy_class().to(device)
+    model.eval()
+    x = torch.rand((batch_size, 64)).to(device)
+
+    if isinstance(model, TransformerPolicy):
+        x = x.unsqueeze(1).permute(1, 0, 2)  # [seq_len, batch, dim]
+
+    warmup(model, x)
+
+    if device.type == 'cuda':
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
+
+    start_time = time.time()
+    with torch.no_grad():
+        for _ in range(iterations):
+            _ = model(x)
+    if device.type == 'cuda':
+        torch.cuda.synchronize()
+    end_time = time.time()
+
+    throughput = iterations / (end_time - start_time)
+    peak_mem = torch.cuda.max_memory_allocated(device) / (1024 * 1024) if device.type == 'cuda' else 0.0
+    return throughput, peak_mem
+
+# ============ Run Experiment ============
+
+policies = {
+    "Deterministic": DeterministicPolicy,
+    "Stochastic": StochasticPolicy,
+    "Rule-based": RuleBasedPolicy,
+    "Transformer": TransformerPolicy
+}
+
+devices = {
+    "CPU": torch.device("cpu"),
+    "GPU": torch.device("cuda" if torch.cuda.is_available() else "cpu")
+}
+
+throughput_results = {d: [] for d in devices}
+memory_results = {d: [] for d in devices}
+
+for device_name, device in devices.items():
+    print(f"\n--- Testing on {device_name} ---")
+    for policy_name, policy_cls in policies.items():
+        print(f"Running {policy_name}...")
+        tput, mem = benchmark(policy_cls, device)
+        throughput_results[device_name].append(tput)
+        memory_results[device_name].append(mem)
+
+# ============ Plot ============
+
+x = np.arange(len(policies))
+width = 0.35
+fig, ax = plt.subplots(figsize=(10, 6))
+bars1 = ax.bar(x - width/2, throughput_results["CPU"], width, label="CPU", hatch='//', color='skyblue')
+bars2 = ax.bar(x + width/2, throughput_results["GPU"], width, label="GPU", hatch='\\\\', color='salmon')
+
+ax.set_ylabel("Throughput (iterations/sec)")
+ax.set_title("Policy Throughput on CPU vs GPU")
+ax.set_xticks(x)
+ax.set_xticklabels(list(policies.keys()))
+ax.legend()
+ax.grid(True, linestyle='--', alpha=0.6)
+
+for bars in [bars1, bars2]:
+    for bar in bars:
+        height = bar.get_height()
+        ax.annotate(f'{height:.1f}',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3),
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+plt.tight_layout()
+plt.savefig("policy_throughput_real.png", dpi=300)
+plt.show()
+
+# ======================
+
+import pandas as pd
+
+summary = pd.DataFrame({
+    "Policy": list(policies.keys()) * 2,
+    "Device": ["CPU"] * 4 + ["GPU"] * 4,
+    "Throughput (iter/s)": throughput_results["CPU"] + throughput_results["GPU"],
+    "Peak Memory (MB)": memory_results["CPU"] + memory_results["GPU"]
+})
+
+print("\n--- Benchmark Summary ---")
+print(summary.to_string(index=False))
+
+f007pkj@lisplab-1:/scratch/jie/flip_game$ cat demo_policy_benchmark.py 
+import torch
+import torch.nn as nn
+import time
+import matplotlib.pyplot as plt
+import numpy as np
+
+# ============ Policy Definitions ============
+
+class DeterministicPolicy(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Linear(128, 64)
+        )
+    def forward(self, x):
+        return self.model(x)
+
+class StochasticPolicy(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.model = nn.Sequential(
+            nn.Linear(64, 128),
+            nn.ReLU(),
+            nn.Dropout(p=0.3),
+            nn.Linear(128, 64)
+        )
+    def forward(self, x):
+        return self.model(x) + torch.randn_like(x) * 0.1
+
+class RuleBasedPolicy(nn.Module):
+    def forward(self, x):
+        return x * (x > 0.5).float()
+
+class TransformerPolicy(nn.Module):
+    def __init__(self):
+        super().__init__()
+        encoder_layer = nn.TransformerEncoderLayer(d_model=64, nhead=4)
+        self.encoder = nn.TransformerEncoder(encoder_layer, num_layers=2)
+    def forward(self, x):
+        return self.encoder(x)
+
+# ============ Benchmark Utilities ============
+
+def warmup(model, x, times=10):
+    with torch.no_grad():
+        for _ in range(times):
+            _ = model(x)
+
+def benchmark(policy_class, device, batch_size=128, iterations=100):
+    model = policy_class().to(device)
+    model.eval()
+    x = torch.rand((batch_size, 64)).to(device)
+
+    if isinstance(model, TransformerPolicy):
+        x = x.unsqueeze(1).permute(1, 0, 2)  # [seq_len, batch, dim]
+
+    warmup(model, x)
+
+    if device.type == 'cuda':
+        torch.cuda.reset_peak_memory_stats()
+        torch.cuda.synchronize()
+
+    start_time = time.time()
+    with torch.no_grad():
+        for _ in range(iterations):
+            _ = model(x)
+    if device.type == 'cuda':
+        torch.cuda.synchronize()
+    end_time = time.time()
+
+    throughput = iterations / (end_time - start_time)
+    peak_mem = torch.cuda.max_memory_allocated(device) / (1024 * 1024) if device.type == 'cuda' else 0.0
+    return throughput, peak_mem
+
+# ============ Run Experiment ============
+
+policies = {
+    "Deterministic": DeterministicPolicy,
+    "Stochastic": StochasticPolicy,
+    "Rule-based": RuleBasedPolicy,
+    "Transformer": TransformerPolicy
+}
+
+devices = {
+    "CPU": torch.device("cpu"),
+    "GPU": torch.device("cuda" if torch.cuda.is_available() else "cpu")
+}
+
+throughput_results = {d: [] for d in devices}
+memory_results = {d: [] for d in devices}
+
+for device_name, device in devices.items():
+    print(f"\n--- Testing on {device_name} ---")
+    for policy_name, policy_cls in policies.items():
+        print(f"Running {policy_name}...")
+        tput, mem = benchmark(policy_cls, device)
+        throughput_results[device_name].append(tput)
+        memory_results[device_name].append(mem)
+
+# ============ Plot ============
+
+x = np.arange(len(policies))
+width = 0.35
+fig, ax = plt.subplots(figsize=(10, 6))
+bars1 = ax.bar(x - width/2, throughput_results["CPU"], width, label="CPU", hatch='//', color='skyblue')
+bars2 = ax.bar(x + width/2, throughput_results["GPU"], width, label="GPU", hatch='\\\\', color='salmon')
+
+ax.set_ylabel("Throughput (iterations/sec)")
+ax.set_title("Policy Throughput on CPU vs GPU")
+ax.set_xticks(x)
+ax.set_xticklabels(list(policies.keys()))
+ax.legend()
+ax.grid(True, linestyle='--', alpha=0.6)
+
+for bars in [bars1, bars2]:
+    for bar in bars:
+        height = bar.get_height()
+        ax.annotate(f'{height:.1f}',
+                    xy=(bar.get_x() + bar.get_width() / 2, height),
+                    xytext=(0, 3),
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+plt.tight_layout()
+plt.savefig("policy_throughput_real.png", dpi=300)
+plt.show()
+
+# ======================
+
+import pandas as pd
+
+summary = pd.DataFrame({
+    "Policy": list(policies.keys()) * 2,
+    "Device": ["CPU"] * 4 + ["GPU"] * 4,
+    "Throughput (iter/s)": throughput_results["CPU"] + throughput_results["GPU"],
+    "Peak Memory (MB)": memory_results["CPU"] + memory_results["GPU"]
+})
+
+print("\n--- Benchmark Summary ---")
+print(summary.to_string(index=False))
+
+f007pkj@lisplab-1:/scratch/jie/flip_game$ ls
+archive			  evaluate_ks.py		jie.pub     policy_throughput_esann.pdf  requirements.txt	 train.py
+demo_policy_benchmark.py  game_env			logs	    policy_throughput_real.png	 run_all_experiments.sh
+envs			  generate_comparison_table.py	output.log  README.md			 run_tensorboard.sh
+f007pkj@lisplab-1:/scratch/jie/flip_game$ vim evaluate_ks.py 
+f007pkj@lisplab-1:/scratch/jie/flip_game$ rm jie.pub 
+f007pkj@lisplab-1:/scratch/jie/flip_game$ ls
+archive			  game_env			policy_throughput_esann.pdf  run_all_experiments.sh
+demo_policy_benchmark.py  generate_comparison_table.py	policy_throughput_real.png   run_tensorboard.sh
+envs			  logs				README.md		     train.py
+evaluate_ks.py		  output.log			requirements.txt
+f007pkj@lisplab-1:/scratch/jie/flip_game$ cd archive/
+f007pkj@lisplab-1:/scratch/jie/flip_game/archive$ ls
+results_round1	  results_round22  results_round36  results_round5   results_round63  results_round77  results_round90
+results_round10   results_round23  results_round37  results_round50  results_round64  results_round78  results_round91
+results_round100  results_round24  results_round38  results_round51  results_round65  results_round79  results_round92
+results_round11   results_round25  results_round39  results_round52  results_round66  results_round8   results_round93
+results_round12   results_round26  results_round4   results_round53  results_round67  results_round80  results_round94
+results_round13   results_round27  results_round40  results_round54  results_round68  results_round81  results_round95
+results_round14   results_round28  results_round41  results_round55  results_round69  results_round82  results_round96
+results_round15   results_round29  results_round42  results_round56  results_round7   results_round83  results_round97
+results_round16   results_round3   results_round43  results_round57  results_round70  results_round84  results_round98
+results_round17   results_round30  results_round44  results_round58  results_round71  results_round85  results_round99
+results_round18   results_round31  results_round45  results_round59  results_round72  results_round86
+results_round19   results_round32  results_round46  results_round6   results_round73  results_round87
+results_round2	  results_round33  results_round47  results_round60  results_round74  results_round88
+results_round20   results_round34  results_round48  results_round61  results_round75  results_round89
+results_round21   results_round35  results_round49  results_round62  results_round76  results_round9
+f007pkj@lisplab-1:/scratch/jie/flip_game/archive$ cd ..
+f007pkj@lisplab-1:/scratch/jie/flip_game$ ls
+archive			  game_env			policy_throughput_esann.pdf  run_all_experiments.sh
+demo_policy_benchmark.py  generate_comparison_table.py	policy_throughput_real.png   run_tensorboard.sh
+envs			  logs				README.md		     train.py
+evaluate_ks.py		  output.log			requirements.txt
+f007pkj@lisplab-1:/scratch/jie/flip_game$ vim evaluate_ks.py 
+f007pkj@lisplab-1:/scratch/jie/flip_game$ cat train.py 
+import os
+import time
+import csv
+import argparse
+import numpy as np
+import multiprocessing as mp
+import subprocess
+import pandas as pd
+import traceback
+
+import torch
+from torch.utils.tensorboard import SummaryWriter
+from stable_baselines3 import DQN
+from stable_baselines3.dqn.policies import MlpPolicy
+from stable_baselines3.common.monitor import Monitor
+from stable_baselines3.common.evaluation import evaluate_policy
+
+import gymnasium as gym
+from gymnasium import Env
+from envs.flip_game_env import FlipGameEnv
+from envs.logger_callback import StepLoggerCallback
+
+def get_policy_kwargs(agent_id):
+    if agent_id == 0:
+        return dict(net_arch=[128, 128])  # Leftmost Greedy
+    elif agent_id == 1:
+        return dict(net_arch=[256, 128])  # Right-Half Random
+    elif agent_id == 2:
+        return dict(net_arch=[128, 64])   # Second-Position Bias
+    elif agent_id == 3:
+        return dict(net_arch=[256, 256, 128])  # Hybrid Strategy
+    return dict(net_arch=[64, 64])
+
+def get_device(agent_id, mode):
+    if mode == "cpu-only":
+        return "cpu", None, "cpu"
+    elif mode == "gpu-only":
+        return "cuda", agent_id, "gpu"
+    elif mode == "hybrid":
+        if agent_id in (0, 2):
+            return "cuda", agent_id, "hybrid-gpu"
+        else:
+            return "cpu", None, "hybrid-cpu"
+    else:
+        raise ValueError("Unknown mode")
+
+def train_agent(agent_id: int, total_timesteps: int, eval_episodes: int, mode: str):
+    try:
+        device, gpu_id, label = get_device(agent_id, mode)
+        if device == "cuda":
+            os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
+        else:
+            os.environ["CUDA_VISIBLE_DEVICES"] = ""
+
+        env = FlipGameEnv(agent_id)
+        assert isinstance(env, Env), "FlipGameEnv must inherit from gymnasium.Env"
+        env = Monitor(env)
+
+        writer = SummaryWriter(log_dir=f"logs/agent{agent_id}_{label}")
+        callback = StepLoggerCallback(agent_id, writer)
+
+        model = DQN(
+            MlpPolicy,
+            env,
+            learning_rate=1e-4,
+            buffer_size=10_000,
+            learning_starts=1_000,
+            batch_size=64,
+            gamma=0.99,
+            train_freq=4,
+            gradient_steps=1,
+            target_update_interval=500,
+            exploration_fraction=0.6,
+            exploration_initial_eps=1.0,
+            exploration_final_eps=0.1,
+            verbose=0,
+            device=device,
+            policy_kwargs=get_policy_kwargs(agent_id),
+        )
+
+        start = time.time()
+        model.learn(total_timesteps=total_timesteps, callback=callback)
+        if device == "cuda":
+            torch.cuda.synchronize()
+        elapsed = time.time() - start
+
+        mean_reward, std_reward = evaluate_policy(model, env, n_eval_episodes=eval_episodes, deterministic=False)
+
+        writer.add_scalar("eval/mean_reward", mean_reward, 0)
+        writer.add_scalar("eval/std_reward", std_reward, 0)
+        writer.add_scalar("eval/train_time", elapsed, 0)
+        writer.close()
+        env.close()
+
+        os.makedirs("results", exist_ok=True)
+        result_file = f"results/agent{agent_id}_{label}.csv"
+        with open(result_file, "w", newline="") as f:
+            csv.writer(f).writerows([
+                ["agent_id", "device", "mean_reward", "std_reward", "training_time_s"],
+                [agent_id, label, f"{mean_reward:.2f}", f"{std_reward:.2f}", f"{elapsed:.2f}"]
+            ])
+
+        print(f"✅ Agent {agent_id} ({label.upper()}): R={mean_reward:.2f}±{std_reward:.2f}, time={elapsed:.1f}s")
+
+    except Exception as e:
+        print(f"❌ Agent {agent_id} failed: {e}")
+        traceback.print_exc()
+
+def summarize_results():
+    result_dir = "results"
+    all_files = [f for f in os.listdir(result_dir) if f.endswith(".csv") and f.startswith("agent")]
+    if not all_files:
+        print("⚠️ No result CSVs found. Skipping summary.")
+        return
+    dfs = [pd.read_csv(os.path.join(result_dir, f)) for f in all_files]
+    summary = pd.concat(dfs, ignore_index=True)
+    summary.to_csv(os.path.join(result_dir, "summary_all.csv"), index=False)
+    print("\n--- Summary ---")
+    print(summary)
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--timesteps", type=int, default=50000)
+    parser.add_argument("--eval_episodes", type=int, default=1000)
+    parser.add_argument("--mode", choices=["cpu-only", "gpu-only", "hybrid"], default="cpu-only")
+    args = parser.parse_args()
+
+    os.makedirs("logs", exist_ok=True)
+    os.makedirs("results", exist_ok=True)
+
+    mp.set_start_method("spawn", force=True)
+    processes = []
+    for aid in range(4):
+        p = mp.Process(target=train_agent, args=(aid, args.timesteps, args.eval_episodes, args.mode), daemon=False)
+        p.start()
+        processes.append(p)
+
+    for p in processes:
+        p.join()
+
+    summarize_results()
+
+if __name__ == "__main__":
+    main()
+
+f007pkj@lisplab-1:/scratch/jie/flip_game$ ls
+archive			  game_env			policy_throughput_esann.pdf  run_all_experiments.sh
+demo_policy_benchmark.py  generate_comparison_table.py	policy_throughput_real.png   run_tensorboard.sh
+envs			  logs				README.md		     train.py
+evaluate_ks.py		  output.log			requirements.txt
+f007pkj@lisplab-1:/scratch/jie/flip_game$ cat requirements.txt 
+torch>=2.0.0
+gymnasium>=0.29.1
+stable-baselines3>=2.1.0
+tensorboard>=2.12
+matplotlib>=3.5
+numpy>=1.21
+
+f007pkj@lisplab-1:/scratch/jie/flip_game$ ls
+archive			  game_env			policy_throughput_esann.pdf  run_all_experiments.sh
+demo_policy_benchmark.py  generate_comparison_table.py	policy_throughput_real.png   run_tensorboard.sh
+envs			  logs				README.md		     train.py
+evaluate_ks.py		  output.log			requirements.txt
+f007pkj@lisplab-1:/scratch/jie/flip_game$ vim README.md
+
+Port Already in Use: If TensorBoard reports that port 6006 is already in use, specify a different port:<200b>
+
+  tensorboard --logdir=logs --port=6007
+Unsupported Address Family: If you encounter an error related to an unsupported address family, ensure that your system supports IPv6 or configure TensorBoard to use IPv4 by specifying the host:<200b>
+
+
+  tensorboard --logdir=logs --host=127.0.0.1 --port=6006
+License
+This project is licensed under the MIT License. See the LICENSE file for details.<200b>
+
+Acknowledgments
+This project utilizes the following libraries:<200b>
+
+Stable Baselines3
+
+Gymnasium
+
+PyTorch
+
+TensorBoard<200b>
+
+For any questions or issues, please open an issue on the GitHub repository.
